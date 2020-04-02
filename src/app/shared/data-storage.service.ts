@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { map } from 'rxjs/operators';
 import { RecipeService } from '../recipes/recipe.service';
 
 import { Recipe } from '../recipes/recipe.model';
@@ -25,6 +26,22 @@ export class DataStorageService {
 	fetchRecipes() {
 		this.http
 			.get<Recipe[]>('https://real-recipes.firebaseio.com/recipes.json')
+			.pipe(
+				// this will ensure every recipe has ingredients array
+				// map to the recipes
+				map(recipes => {
+					// map over each recipe
+					return recipes.map(recipe => {
+						// if recipe has no ingredients array, set to empty array
+						return {
+							...recipe,
+							ingredients: recipe.ingredients
+								? recipe.ingredients
+								: []
+						};
+					});
+				})
+			)
 			.subscribe(recipes => {
 				this.recipeService.setRecipes(recipes);
 			});
